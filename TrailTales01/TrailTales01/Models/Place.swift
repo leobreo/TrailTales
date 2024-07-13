@@ -2,9 +2,14 @@ import Foundation
 import CoreLocation
 
 // A model representing a place with an id, name, description, and coordinate
-struct Place: Identifiable {
-    var id: UUID // Unique identifier for the place
-    var name: String // Name of the place
-    var description: String // Description of the place
-    var coordinate: CLLocationCoordinate2D // Geographic coordinates
+struct Place: Identifiable, Equatable {
+    var id: UUID
+    var name: String
+    var description: String
+    var coordinate: CLLocationCoordinate2D
+    
+    // Conform to Equatable
+    static func == (lhs: Place, rhs: Place) -> Bool {
+        return lhs.id == rhs.id
+    }
 }

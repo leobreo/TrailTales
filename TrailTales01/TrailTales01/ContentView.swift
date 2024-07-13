@@ -17,7 +17,10 @@ struct ContentView: View {
     
     // State to track the selected place
     @State private var selectedPlace: Place? = nil
-
+    
+    // State to control the navigation
+    @State private var isNavigating: Bool = false
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -26,22 +29,50 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all) // Makes the map take up the entire screen
                 
                 // Navigate to PlaceDetailView when a place is selected
-                if let selectedPlace = selectedPlace {
-                    NavigationLink(
-                        destination: PlaceDetailView(place: selectedPlace),
-                        isActive: .constant(true),
-                        label: { EmptyView() }
-                    )
-                }
+                NavigationLink(
+                    destination: PlaceDetailView(place: selectedPlace ?? places.first!), // Safe unwrapping with default
+                    isActive: $isNavigating,
+                    label: { EmptyView() }
+                )
             }
             .navigationTitle("Copenhagen Sights") // Set the navigation title
             .onAppear {
                 // Update the region when the user's location changes
                 if let userLocation = locationManager.userLocation {
                     region.center = userLocation.coordinate
+                    findClosestPlace(userLocation: userLocation)
+                }
+            }
+            .onChange(of: locationManager.userLocation) { newLocation in
+                if let userLocation = newLocation {
+                    region.center = userLocation.coordinate
+                    findClosestPlace(userLocation: userLocation)
+                }
+            }
+            .onChange(of: selectedPlace) { newPlace in
+                if newPlace != nil {
+                    isNavigating = true
                 }
             }
         }
+    }
+    
+    // Function to find the closest place
+    private func findClosestPlace(userLocation: CLLocation) {
+        var closestDistance: CLLocationDistance = .greatestFiniteMagnitude
+        var closest: Place? = nil
+        
+        for place in places {
+            let placeLocation = CLLocation(latitude: place.coordinate.latitude, longitude: place.coordinate.longitude)
+            let distance = userLocation.distance(from: placeLocation)
+            
+            if distance < closestDistance {
+                closestDistance = distance
+                closest = place
+            }
+        }
+        
+        selectedPlace = closest
     }
 }
 

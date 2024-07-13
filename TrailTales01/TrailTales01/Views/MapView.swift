@@ -28,6 +28,7 @@ struct MapView: UIViewRepresentable {
             let annotation = MKPointAnnotation()
             annotation.coordinate = place.coordinate
             annotation.title = place.name
+            annotation.subtitle = place.description // Add description as subtitle
             return annotation
         }
         view.addAnnotations(annotations)
@@ -51,6 +52,38 @@ struct MapView: UIViewRepresentable {
 
         init(_ parent: MapView) {
             self.parent = parent
+        }
+
+        // Customize the annotation view
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            if annotation is MKUserLocation {
+                return nil // Use default user location view
+            }
+
+            let identifier = "place"
+            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKPinAnnotationView
+            if annotationView == nil {
+                annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                annotationView?.canShowCallout = true
+                
+                // Add a button to the callout
+                let rightButton = UIButton(type: .detailDisclosure)
+                annotationView?.rightCalloutAccessoryView = rightButton
+            } else {
+                annotationView?.annotation = annotation
+            }
+            
+            // Set pin color based on whether it's the closest place
+            annotationView?.pinTintColor = (annotation.coordinate.latitude == parent.selectedPlace?.coordinate.latitude &&
+                                            annotation.coordinate.longitude == parent.selectedPlace?.coordinate.longitude) ? UIColor.green : UIColor.red
+            return annotationView
+        }
+
+        // Handle accessory button tap to navigate to detailed view
+        func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+            guard let annotation = view.annotation else { return }
+            guard let place = parent.places.first(where: { $0.coordinate.latitude == annotation.coordinate.latitude && $0.coordinate.longitude == annotation.coordinate.longitude }) else { return }
+            parent.selectedPlace = place // Set the selected place
         }
 
         // Handle annotation tap
