@@ -43,25 +43,20 @@ struct ContentView: View {
                 // Update the region when the user's location changes
                 if let userLocation = locationManager.userLocation {
                     region.center = userLocation.coordinate
-                    findClosestPlace(userLocation: userLocation)
+                    refreshClosestPlace(userLocation: userLocation)
                 }
             }
             .onChange(of: locationManager.userLocation) { newLocation in
                 if let userLocation = newLocation {
                     region.center = userLocation.coordinate
-                    findClosestPlace(userLocation: userLocation)
-                }
-            }
-            .onChange(of: selectedPlace) { newPlace in
-                if newPlace != nil {
-                    isNavigating = true
+                    refreshClosestPlace(userLocation: userLocation)
                 }
             }
         }
     }
     
     // Function to find the closest place
-    private func findClosestPlace(userLocation: CLLocation) {
+    private func refreshClosestPlace(userLocation: CLLocation) {
         var closestDistance: CLLocationDistance = .greatestFiniteMagnitude
         var closest: Place? = nil
         

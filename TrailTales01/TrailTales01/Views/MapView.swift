@@ -42,6 +42,19 @@ struct MapView: UIViewRepresentable {
             let userRegion = MKCoordinateRegion(center: userCoordinate, span: span)
             view.setRegion(userRegion, animated: true)
         }
+        
+        // Refresh the annotation views
+        for annotation in view.annotations {
+            if let annotationView = view.view(for: annotation) as? MKMarkerAnnotationView {
+                if let closestPlace = closestPlace,
+                   annotation.coordinate.latitude == closestPlace.coordinate.latitude &&
+                   annotation.coordinate.longitude == closestPlace.coordinate.longitude {
+                    annotationView.markerTintColor = .green
+                } else {
+                    annotationView.markerTintColor = .red
+                }
+            }
+        }
     }
 
     // Coordinator to handle MKMapViewDelegate methods
@@ -81,7 +94,7 @@ struct MapView: UIViewRepresentable {
             if let closestPlace = parent.closestPlace,
                annotation.coordinate.latitude == closestPlace.coordinate.latitude &&
                annotation.coordinate.longitude == closestPlace.coordinate.longitude {
-                annotationView?.markerTintColor = .blue
+                annotationView?.markerTintColor = .green
             } else {
                 annotationView?.markerTintColor = .red
             }
