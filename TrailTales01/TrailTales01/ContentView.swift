@@ -17,7 +17,7 @@ struct ContentView: View {
     
     // State to track the selected place
     @State private var selectedPlace: Place? = nil
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -35,9 +35,10 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("Copenhagen Sights") // Set the navigation title
-            .navigationDestination(isPresented: .constant(selectedPlace != nil)) {
-                if let selectedPlace = selectedPlace {
-                    PlaceDetailView(place: selectedPlace)
+            .onAppear {
+                // Update the region when the user's location changes
+                if let userLocation = locationManager.userLocation {
+                    region.center = userLocation.coordinate
                 }
             }
         }
