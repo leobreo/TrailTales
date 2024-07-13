@@ -1,0 +1,23 @@
+[
+    {
+        "id": "1",
+        "name": "Nyhavn",
+        "description": "A 17th-century waterfront, canal and entertainment district.",
+        "latitude": 55.6797,
+        "longitude": 12.5875
+    },
+    {
+        "id": "2",
+        "name": "The Little Mermaid",
+        "description": "A bronze statue by Edvard Eriksen, depicting a mermaid.",
+        "latitude": 55.6929,
+        "longitude": 12.5996
+    },
+    {
+        "id": "3",
+        "name": "Tivoli Gardens",
+        "description": "An amusement park and pleasure garden.",
+        "latitude": 55.6734,
+        "longitude": 12.5681
+    }
+]
