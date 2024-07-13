@@ -7,6 +7,7 @@ struct MapView: UIViewRepresentable {
     @ObservedObject var locationManager: LocationManager
     var places: [Place]
     @Binding var selectedPlace: Place?
+    @Binding var closestPlace: Place?
     @Binding var isNavigating: Bool
 
     // Create the MKMapView
@@ -64,9 +65,9 @@ struct MapView: UIViewRepresentable {
             }
 
             let identifier = "place"
-            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKPinAnnotationView
+            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView
             if annotationView == nil {
-                annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
                 annotationView?.canShowCallout = true
                 
                 // Add a button to the callout
@@ -76,9 +77,15 @@ struct MapView: UIViewRepresentable {
                 annotationView?.annotation = annotation
             }
             
-            // Set pin color based on whether it's the closest place
-            annotationView?.pinTintColor = (annotation.coordinate.latitude == parent.selectedPlace?.coordinate.latitude &&
-                                            annotation.coordinate.longitude == parent.selectedPlace?.coordinate.longitude) ? UIColor.green : UIColor.red
+            // Set marker tint color based on whether it's the closest place
+            if let closestPlace = parent.closestPlace,
+               annotation.coordinate.latitude == closestPlace.coordinate.latitude &&
+               annotation.coordinate.longitude == closestPlace.coordinate.longitude {
+                annotationView?.markerTintColor = .blue
+            } else {
+                annotationView?.markerTintColor = .red
+            }
+            
             return annotationView
         }
 
