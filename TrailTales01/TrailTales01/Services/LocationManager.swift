@@ -11,14 +11,14 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     // Initialize the LocationManager
     override init() {
-        super.init()
-        // Set the delegate to self to receive location updates
-        self.locationManager.delegate = self
-        // Request permission to use location services when the app is in use
-        self.locationManager.requestWhenInUseAuthorization()
-        // Start updating the user's location
-        self.locationManager.startUpdatingLocation()
-    }
+            super.init()
+            self.locationManager.delegate = self
+            self.locationManager.requestWhenInUseAuthorization()
+            self.locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
+            self.locationManager.distanceFilter = 10 // Update every 10 meters
+            self.locationManager.startUpdatingLocation()
+        }
+
     
     // CLLocationManagerDelegate method to handle location updates
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {

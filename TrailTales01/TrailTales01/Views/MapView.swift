@@ -7,6 +7,8 @@ struct MapView: UIViewRepresentable {
     @ObservedObject var locationManager: LocationManager
     var places: [Place]
     @Binding var selectedPlace: Place?
+    @Binding var closestPlace: Place?
+    @Binding var isNavigating: Bool
 
     // Create the MKMapView
     func makeUIView(context: Context) -> MKMapView {
@@ -28,6 +30,7 @@ struct MapView: UIViewRepresentable {
             let annotation = MKPointAnnotation()
             annotation.coordinate = place.coordinate
             annotation.title = place.name
+            annotation.subtitle = place.description // Add description as subtitle
             return annotation
         }
         view.addAnnotations(annotations)
@@ -43,22 +46,60 @@ struct MapView: UIViewRepresentable {
 
     // Coordinator to handle MKMapViewDelegate methods
     func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        Coordinator(self, isNavigating: $isNavigating)
     }
 
     class Coordinator: NSObject, MKMapViewDelegate {
         var parent: MapView
+        @Binding var isNavigating: Bool
 
-        init(_ parent: MapView) {
+        init(_ parent: MapView, isNavigating: Binding<Bool>) {
             self.parent = parent
+            self._isNavigating = isNavigating
+        }
+
+        // Customize the annotation view
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            if annotation is MKUserLocation {
+                return nil // Use default user location view
+            }
+
+            let identifier = "place"
+            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView
+            if annotationView == nil {
+                annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                annotationView?.canShowCallout = true
+                
+                // Add a button to the callout
+                let rightButton = UIButton(type: .detailDisclosure)
+                annotationView?.rightCalloutAccessoryView = rightButton
+            } else {
+                annotationView?.annotation = annotation
+            }
+            
+            // Set marker tint color based on whether it's the closest place
+            if let closestPlace = parent.closestPlace,
+               annotation.coordinate.latitude == closestPlace.coordinate.latitude &&
+               annotation.coordinate.longitude == closestPlace.coordinate.longitude {
+                annotationView?.markerTintColor = .blue
+            } else {
+                annotationView?.markerTintColor = .red
+            }
+            
+            return annotationView
+        }
+
+        // Handle accessory button tap to navigate to detailed view
+        func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+            guard let annotation = view.annotation else { return }
+            guard let place = parent.places.first(where: { $0.coordinate.latitude == annotation.coordinate.latitude && $0.coordinate.longitude == annotation.coordinate.longitude }) else { return }
+            parent.selectedPlace = place // Set the selected place
+            isNavigating = true // Trigger navigation
         }
 
         // Handle annotation tap
         func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-            guard let annotation = view.annotation else { return }
-            // Find the corresponding place for the tapped annotation
-            guard let place = parent.places.first(where: { $0.coordinate.latitude == annotation.coordinate.latitude && $0.coordinate.longitude == annotation.coordinate.longitude }) else { return }
-            parent.selectedPlace = place // Set the selected place
+            // Just show the callout, no need to set selectedPlace here
         }
     }
 }
