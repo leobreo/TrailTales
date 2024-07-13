@@ -7,6 +7,7 @@ struct MapView: UIViewRepresentable {
     @ObservedObject var locationManager: LocationManager
     var places: [Place]
     @Binding var selectedPlace: Place?
+    @Binding var isNavigating: Bool
 
     // Create the MKMapView
     func makeUIView(context: Context) -> MKMapView {
@@ -44,14 +45,16 @@ struct MapView: UIViewRepresentable {
 
     // Coordinator to handle MKMapViewDelegate methods
     func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        Coordinator(self, isNavigating: $isNavigating)
     }
 
     class Coordinator: NSObject, MKMapViewDelegate {
         var parent: MapView
+        @Binding var isNavigating: Bool
 
-        init(_ parent: MapView) {
+        init(_ parent: MapView, isNavigating: Binding<Bool>) {
             self.parent = parent
+            self._isNavigating = isNavigating
         }
 
         // Customize the annotation view
@@ -84,14 +87,12 @@ struct MapView: UIViewRepresentable {
             guard let annotation = view.annotation else { return }
             guard let place = parent.places.first(where: { $0.coordinate.latitude == annotation.coordinate.latitude && $0.coordinate.longitude == annotation.coordinate.longitude }) else { return }
             parent.selectedPlace = place // Set the selected place
+            isNavigating = true // Trigger navigation
         }
 
         // Handle annotation tap
         func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-            guard let annotation = view.annotation else { return }
-            // Find the corresponding place for the tapped annotation
-            guard let place = parent.places.first(where: { $0.coordinate.latitude == annotation.coordinate.latitude && $0.coordinate.longitude == annotation.coordinate.longitude }) else { return }
-            parent.selectedPlace = place // Set the selected place
+            // Just show the callout, no need to set selectedPlace here
         }
     }
 }

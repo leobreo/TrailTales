@@ -25,7 +25,7 @@ struct ContentView: View {
         NavigationStack {
             ZStack {
                 // Show the map with annotations
-                MapView(region: $region, locationManager: locationManager, places: places, selectedPlace: $selectedPlace)
+                MapView(region: $region, locationManager: locationManager, places: places, selectedPlace: $selectedPlace, isNavigating: $isNavigating)
                     .edgesIgnoringSafeArea(.all) // Makes the map take up the entire screen
                 
                 // Navigate to PlaceDetailView when a place is selected
@@ -35,7 +35,7 @@ struct ContentView: View {
                     label: { EmptyView() }
                 )
             }
-            .navigationTitle("Copenhagen Sights") // Set the navigation title
+            //.navigationTitle("Copenhagen Sights") // Set the navigation title
             .onAppear {
                 // Update the region when the user's location changes
                 if let userLocation = locationManager.userLocation {
@@ -47,11 +47,6 @@ struct ContentView: View {
                 if let userLocation = newLocation {
                     region.center = userLocation.coordinate
                     findClosestPlace(userLocation: userLocation)
-                }
-            }
-            .onChange(of: selectedPlace) { newPlace in
-                if newPlace != nil {
-                    isNavigating = true
                 }
             }
         }
